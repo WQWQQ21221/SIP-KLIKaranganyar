@@ -1,0 +1,23 @@
+{
+"type": "FeatureCollection",
+"name": "infrastruktur_transportasi",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::32749" } },
+"features": [
+{"type":"Feature","properties":{"Id":0,"X":111.132134,"Y":82.453548},"geometry":{"type":"Point","coordinates":[501937.352779352513608,9155460.188483882695436]}},
+{"type":"Feature","properties":{"Id":0,"X":110.786927,"Y":82.490592},"geometry":{"type":"Point","coordinates":[496891.172990320250392,9159598.881621738895774]}},
+{"type":"Feature","properties":{"Id":0,"X":111.613016,"Y":82.516058},"geometry":{"type":"Point","coordinates":[508913.885817182715982,9162483.24633252248168]}},
+{"type":"Feature","properties":{"Id":0,"X":110.576258,"Y":82.496122},"geometry":{"type":"Point","coordinates":[493821.975288792804349,9160233.060689318925142]}},
+{"type":"Feature","properties":{"Id":0,"X":111.040448,"Y":82.390463},"geometry":{"type":"Point","coordinates":[500597.985387889726553,9148415.977508708834648]}},
+{"type":"Feature","properties":{"Id":0,"X":109.547246,"Y":82.605414},"geometry":{"type":"Point","coordinates":[479128.015118765586521,9172673.1689727101475]}},
+{"type":"Feature","properties":{"Id":0,"X":111.250378,"Y":82.34766},"geometry":{"type":"Point","coordinates":[503722.235237076354679,9143645.789177408441901]}},
+{"type":"Feature","properties":{"Id":0,"X":111.556283,"Y":82.478811},"geometry":{"type":"Point","coordinates":[508128.985159418662079,9158317.177582997828722]}},
+{"type":"Feature","properties":{"Id":0,"X":111.857726,"Y":82.556014},"geometry":{"type":"Point","coordinates":[512405.8046097564511,9166988.26892114803195]}},
+{"type":"Feature","properties":{"Id":0,"X":111.054086,"Y":82.538631},"geometry":{"type":"Point","coordinates":[500784.117416931258049,9164956.160865573212504]}},
+{"type":"Feature","properties":{"Id":0,"X":111.402429,"Y":82.344384},"geometry":{"type":"Point","coordinates":[505985.230069942132104,9143292.836944509297609]}},
+{"type":"Feature","properties":{"Id":0,"X":110.049644,"Y":82.532142},"geometry":{"type":"Point","coordinates":[486210.724703429616056,9164344.812180254608393]}},
+{"type":"Feature","properties":{"Id":0,"X":111.892533,"Y":82.423065},"geometry":{"type":"Point","coordinates":[513138.394084878149442,9152156.525027124211192]}},
+{"type":"Feature","properties":{"Id":0,"X":110.786927,"Y":82.490592},"geometry":{"type":"Point","coordinates":[496891.172990320250392,9159598.881621738895774]}},
+{"type":"Feature","properties":{"Id":0,"X":110.285746,"Y":82.561991},"geometry":{"type":"Point","coordinates":[489677.453932705218904,9167627.268944976851344]}},
+{"type":"Feature","properties":{"Id":0,"X":109.512315,"Y":82.62124},"geometry":{"type":"Point","coordinates":[478671.753073001222219,9174452.023028733208776]}}
+]
+}
