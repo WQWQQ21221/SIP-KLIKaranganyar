@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Kesesuaian Lahan Industri Kabupaten Karanganyar</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<style>
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Segoe UI,Arial,sans-serif;font-size:13px;color:#222}
+#header{position:absolute;top:0;left:0;right:0;height:46px;background:#1f4e79;color:#fff;display:flex;align-items:center;padding:0 12px;z-index:1000;gap:10px}
+#header h1{font-size:15px;margin:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#header button{background:none;border:0;color:#fff;font-size:20px;cursor:pointer}
+#map{position:absolute;top:46px;bottom:0;left:0;right:0}
+#panel{position:absolute;top:46px;bottom:0;left:0;width:300px;background:#fff;z-index:900;overflow-y:auto;box-shadow:2px 0 6px rgba(0,0,0,.3);transition:transform .25s}
+#panel.hide{transform:translateX(-100%)}
+#panel h2{margin:0;padding:10px 12px;font-size:13px;background:#eef2f6;border-bottom:1px solid #d5dce4;position:sticky;top:0;z-index:2}
+.layer{border-bottom:1px solid #eee;padding:6px 12px}
+.layer .row{display:flex;align-items:center;gap:6px}
+.layer .row label{flex:1;font-weight:600;cursor:pointer}
+.layer .st{font-size:11px;color:#c0392b}
+.layer input[type=range]{width:100%;margin:4px 0}
+.legend{display:none;margin-top:4px}
+.legend.open{display:block}
+.legend div{display:flex;align-items:center;gap:6px;font-size:12px;padding:1px 0}
+.legend i{width:16px;height:12px;border:1px solid #555;flex:none}
+.legend i.pt{width:12px;height:12px;border-radius:50%;border:1.5px solid #fff;box-shadow:0 0 0 1px #555;margin:0 2px}
+.legend i.ln{height:3px;border:0}
+.tog{cursor:pointer;color:#1f4e79;font-size:12px;user-select:none}
+#basemaps{padding:8px 12px;display:flex;gap:6px;flex-wrap:wrap}
+#basemaps button{flex:1;padding:6px;border:1px solid #1f4e79;background:#fff;color:#1f4e79;border-radius:4px;cursor:pointer;font-size:12px}
+#basemaps button.act{background:#1f4e79;color:#fff}
+.wg{position:absolute;z-index:800;width:40px;height:40px;background:#fff;border:0;border-radius:4px;box-shadow:0 1px 5px rgba(0,0,0,.5);font-size:18px;cursor:pointer}
+.wg:hover{background:#eef2f6}
+#w-attr{right:10px;top:106px}#w-print{right:10px;top:156px}#w-search{right:10px;top:206px}
+#w-home{right:10px;bottom:160px}#w-full{right:10px;bottom:110px}#w-loc{right:10px;bottom:60px}
+#coord{position:absolute;left:310px;bottom:6px;z-index:800;background:rgba(255,255,255,.9);padding:3px 8px;border-radius:3px;font-size:12px}
+#panel.hide ~ #coord{left:10px}
+#searchbox{position:absolute;right:56px;top:206px;z-index:850;display:none;background:#fff;padding:6px;border-radius:4px;box-shadow:0 1px 5px rgba(0,0,0,.5);width:260px}
+#searchbox input{width:100%;padding:6px;border:1px solid #aaa;border-radius:3px}
+#sres div{padding:5px;cursor:pointer;border-bottom:1px solid #eee;font-size:12px}
+#sres div:hover{background:#eef2f6}
+#modal{position:fixed;inset:60px 5% 5% 5%;background:#fff;z-index:2000;display:none;flex-direction:column;box-shadow:0 4px 20px rgba(0,0,0,.5);border-radius:6px}
+#modal .mh{display:flex;gap:8px;align-items:center;padding:8px 12px;background:#1f4e79;color:#fff}
+#modal .mh select{flex:1;padding:4px}
+#modal .mb{overflow:auto;flex:1}
+#modal table{border-collapse:collapse;width:100%}
+#modal th,#modal td{border:1px solid #ddd;padding:4px 8px;font-size:12px;text-align:left}
+#modal th{background:#eef2f6;position:sticky;top:0}
+.pop table td,.pop table th{padding:2px 6px;font-size:12px;text-align:left}
+#toast{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:6px 14px;border-radius:4px;z-index:1500;display:none}
+@media (max-width:650px){#panel{width:82%}#coord{left:10px!important;bottom:50px}.leaflet-control-scale{margin-bottom:60px!important}}
+.lbl{background:none;border:0;box-shadow:none;font-weight:700;font-size:11px;color:#000;white-space:nowrap;text-shadow:-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff}
+.leaflet-tooltip.lbl::before{display:none}
+.nolbl .lbl{display:none}
+#clock{margin-left:auto;text-align:right;line-height:1.3;font-size:12px;white-space:nowrap}
+@media (max-width:650px){#clock{font-size:10px}}
+@media print{#panel,.wg,#header,#coord,#searchbox{display:none!important}#map{top:0}}
+</style>
+</head>
+<body>
+<div id="header">
+  <button id="btnPanel" title="Layer &amp; Legenda">&#9776;</button>
+  <h1>Kesesuaian Lahan Industri &ndash; Kabupaten Karanganyar</h1>
+  <div id="clock"></div>
+</div>
+
+<div id="panel">
+  <h2>Peta Dasar</h2>
+  <div id="basemaps"></div>
+  <h2>Layer &amp; Legenda</h2>
+  <div id="layers"></div>
+</div>
+
+<div id="map"></div>
+<button class="wg" id="w-attr" title="Tabel Atribut">&#9776;</button>
+<button class="wg" id="w-print" title="Cetak">&#128424;</button>
+<button class="wg" id="w-search" title="Cari Lokasi">&#128269;</button>
+<button class="wg" id="w-home" title="Tampilan Awal">&#8962;</button>
+<button class="wg" id="w-full" title="Layar Penuh">&#9974;</button>
+<button class="wg" id="w-loc" title="Lokasi Saya">&#9737;</button>
+<div id="searchbox"><input id="q" placeholder="Cari lokasi, tekan Enter"><div id="sres"></div></div>
+<div id="coord">Lat: - | Lng: -</div>
+<div id="toast"></div>
+<div id="modal"><div class="mh"><b>Tabel Atribut</b><select id="attrSel"></select><button id="attrClose" style="background:none;border:0;color:#fff;font-size:20px;cursor:pointer">&times;</button></div><div class="mb" id="attrBody"></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+/* ============ KONFIGURASI ============ */
+const BOUNDS=[[-7.762861,110.723804],[-7.419601,111.314299]];   // Karanganyar
+const RAMP=['26,150,65','166,217,106','255,255,192','253,174,97','215,25,28'];
+const ramp=v=>v.map((x,i)=>[x,RAMP[i]]);
+
+// Folder data: data/<key>.js  (hasil export qgis2web, variabel json_<key>)
+const LAYERS=[
+  {key:'pusat_kegiatan_lokal',title:'Pusat Kegiatan Lokal',field:'',point:true,color:'160,32,240',radius:10,on:true,classes:[['Pusat Kegiatan Lokal','255,255,0']]},
+  {key:'infrastruktur_transportasi',title:'Infrastruktur Transportasi',field:'',point:true,color:'255,140,0',radius:8,on:true,classes:[['Infrastruktur Transportasi','173,216,230']]},
+  {key:'jalan_arteri_primer',title:'Jalan Arteri Primer',field:'REMARK',line:true,weight:3,on:true,classes:[['Jalan Arteri','255,81,0']]},
+  {key:'jalan_kolektor_primer',title:'Jalan Kolektor Primer',field:'REMARK',line:true,weight:3,on:true,classes:[['Jalan Kolektor','255,140,0']]},
+  {key:'jaringan_serat_optik',title:'Jaringan Serat Optik',field:'REMARK',line:true,weight:2,on:true,classes:[['Jalan Serat Optik Lokal','155,90,255'],['Jalan Serat Optik Lain','178,178,255']]},
+  {key:'sungai',title:'Sungai',field:'REMARK',line:true,color:'0,150,255',weight:2,on:true,classes:[['Sungai','0,150,255']]},
+ {key:'All_Kec_Karanganyar_13',title:'Batas Kecamatan',field:'WADMKC',outline:true,on:true,classes:[]},
+ {key:'UNI_POLARUANG_1',title:'Pola Ruang',field:'Zona',stroke:true,on:true,classes:[
+  ['Cagar Budaya','255,55,205'],['Hortikuktura','230,255,75'],['Hutan Lindung','50,95,40'],['Hutan Rakyat','155,200,155'],
+  ['Hutan Raya','185,165,255'],['Imbuhan Air Tanah','0,77,168'],['Kawasan Industri','105,0,0'],
+  ['Kawasan Lindung Spiritual dan Kearifan Lokal','5,105,65'],['Kawasan Pemukiman Pedesaan','235,155,30'],
+  ['Kawasan Pemukiman Pekotaan','245,155,30'],['Kawasan Pertahanan dan keamanan','155,0,255'],
+  ['Kawasan Tanaman Pangan','200,245,70'],['Perkebunan','175,175,75'],['Permukiman Pedesaan','235,155,30'],
+  ['R.Industri','105,0,0'],['Rawan Bencana Gerakan Tanah','12,80,83'],['Sungai','151,219,242'],
+  ['Taman Wisata Alam','210,190,255'],['Waduk','151,219,242']]},
+ {key:'PENGUNAANLAHANFIX_2',title:'Penggunaan Lahan',field:'REMARK',classes:[
+  ['Bangunan Industri','192,0,192'],['Bangunan/Gedung','255,0,0'],['Danau/Situ','151,219,242'],['Hutan Rimba','55,85,10'],
+  ['Padang Rumput','204,230,153'],['Perkebunan/Kebun','155,200,155'],['Permukiman dan Tempat Kegiatan','255,0,0'],
+  ['Sawah','255,255,0'],['Sawah Tadah Hujan','255,255,0'],['Semak Belukar','204,230,153'],['Sungai','0,112,192'],
+  ['Tanaman Campur','153,204,102'],['Tegalan/Ladang','217,164,65'],['Waduk','0,112,192']]},
+ {key:'REC_MULTIBAHAYA_3',title:'Multi Bahaya',field:'Kelas',classes:[['Rendah',RAMP[0]],['Sedang',RAMP[2]],['Tinggi',RAMP[4]]]},
+ {key:'REC_LERENG_4',title:'Kemiringan Lereng',field:'KETERANGAN',classes:ramp(['0 - 8%','8 - 15%','15 - 25%','25 - 45%','> 45%'])},
+ {key:'REC_AIRBAKU_5',title:'Jarak ke Air Baku (m)',field:'Jarak',classes:ramp(['0-100','100-500','500-1000','1000-1500','>1500'])},
+ {key:'REC_LISTRIK_6',title:'Jarak ke Jaringan Listrik (m)',field:'Jarak',classes:ramp(['0 - 100','100 - 500','500 - 1000','1000 - 1500','> 5000'])},
+ {key:'REC_Telekomunikasi_7',title:'Jarak ke Telekomunikasi (m)',field:'Jarak',classes:ramp(['0 - 100','100 - 500','500 - 1000','1000 - 1500','> 1500'])},
+ {key:'REC_P_TRNPRTSI_8',title:'Jarak ke Prasarana Transportasi (m)',field:'Jarak',classes:ramp(['0 - 500','500 - 1000','1000 - 3000','3000 - 5000','> 5000'])},
+ {key:'REC_INF_TRNPRTSI_9',title:'Jarak ke Infrastruktur Transportasi (m)',field:'JARAK',classes:ramp(['0 - 500','500 - 1000','1000 - 1500','1500 - 2000','>2000'])},
+ {key:'REC_PERKIM_10',title:'Kesesuaian Perumahan & Permukiman',field:'Kesesuaian',classes:[['Kurang Sesuai',RAMP[0]],['Sesuai',RAMP[2]],['Tidak Sesuai',RAMP[4]]]},
+ {key:'PUSATKOTA_11',title:'Jarak ke Pusat Kota (m)',field:'Jarak',stroke:true,classes:[['>20000',RAMP[4]],['0 - 10000',RAMP[2]],['10000 - 20000',RAMP[0]]]},
+ {key:'DISS_KSLINDSTR_12',title:'Kesesuaian Kawasan Industri',field:'Kelas',classes:ramp(['Sangat Sesuai','Sesuai','Cukup Sesuai','Kurang Sesuai','Tidak Sesuai'])},
+ {key:'jawa_tengah',title:'Jawa Tengah',field:'',fill:'255,255,255',stroke:true,on:true,classes:[['Jawa Tengah','255,255,255']]}
+ ];
+ const BASEMAPS={
+ 'Satelit':['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxNativeZoom:19}],
+ 'Jalan':['https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',{maxNativeZoom:19}],
+ 'Topografi':['https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',{maxNativeZoom:19}],
+ 'OSM':['https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxNativeZoom:19}]
+};
+
+/* ============ PETA ============ */
+const map=L.map('map',{zoomControl:false,minZoom:5,maxZoom:22}).fitBounds(BOUNDS);
+map.on('zoomend',()=>document.getElementById('map').classList.toggle('nolbl',map.getZoom()<11));
+L.control.zoom({position:'topleft'}).addTo(map);
+L.control.scale({position:'bottomleft',imperial:false}).addTo(map);
+map.attributionControl.setPrefix('Leaflet');
+
+let baseLayer;
+const bmDiv=document.getElementById('basemaps');
+function setBase(n){
+  if(baseLayer)map.removeLayer(baseLayer);
+  baseLayer=L.tileLayer(BASEMAPS[n][0],Object.assign({maxZoom:22,pane:'tilePane'},BASEMAPS[n][1])).addTo(map);
+  [...bmDiv.children].forEach(b=>b.classList.toggle('act',b.textContent===n));
+}
+Object.keys(BASEMAPS).forEach(n=>{const b=document.createElement('button');b.textContent=n;b.onclick=()=>setBase(n);bmDiv.appendChild(b)});
+setBase('Satelit');
+
+/* ============ LAYER DATA ============ */
+const layersDiv=document.getElementById('layers');
+const store={};
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',2500)}
+
+LAYERS.forEach((cfg,i)=>{
+  const pane='pane_'+cfg.key;
+  map.createPane(pane).style.zIndex=401+(LAYERS.length-i);   // item atas daftar = paling atas di peta
+  const cmap={};cfg.classes.forEach(c=>cmap[c[0]]=c[1]);
+  const style=f=>{
+    if(cfg.point)return{pane,radius:cfg.radius||10,color:'#ffffff',weight:1.5,fillColor:'rgb('+(cfg.color||'160,32,240')+')',fillOpacity:1};
+    if(cfg.line)return{pane,color:'rgb('+(cmap[String(f.properties[cfg.field])]||cfg.color||'255,255,255')+')',weight:cfg.weight||2,opacity:1};
+    if(cfg.outline)return{pane,color:'#000000',weight:1.5,fill:false};
+    const col=cmap[String(f.properties[cfg.field])]||cfg.fill||'239,228,141';
+    return cfg.stroke?{pane,color:'rgb(35,35,35)',weight:1,fillColor:'rgb('+col+')',fillOpacity:1}
+                     :{pane,stroke:false,fillColor:'rgb('+col+')',fillOpacity:1};
+  };
+  const lyr=L.geoJSON(null,{pane,style,pointToLayer:(f,ll)=>L.circleMarker(ll),onEachFeature:(f,l)=>{
+    let h='<div class="pop"><table>';
+    for(const k in f.properties){const v=f.properties[k];if(v!==null&&v!=='')h+='<tr><th>'+k+'</th><td>'+v+'</td></tr>'}
+    l.bindPopup(h+'</table></div>',{maxHeight:300});
+    if(cfg.outline&&f.properties[cfg.field])l.bindTooltip(String(f.properties[cfg.field]),{permanent:true,direction:'center',className:'lbl'});
+  }});
+  store[cfg.key]={cfg,lyr,loaded:false};
+
+  // UI
+  const el=document.createElement('div');el.className='layer';
+  el.innerHTML='<div class="row"><input type="checkbox" id="c_'+cfg.key+'"><label for="c_'+cfg.key+'">'+cfg.title+'</label><span class="tog" data-k="'+cfg.key+'">legenda</span></div>'
+   +'<div class="st" id="s_'+cfg.key+'"></div>'
+   +'<input type="range" min="0" max="1" step="0.05" value="1" title="Transparansi">'
+   +'<div class="legend" id="l_'+cfg.key+'">'+(cfg.outline?'<div><i style="background:none;border:2px solid #ffd400"></i>Batas Kecamatan</div>':cfg.classes.map(c=>'<div><i class="'+(cfg.point?'pt':cfg.line?'ln':'')+'" style="background:rgb('+c[1]+')"></i>'+c[0]+'</div>').join(''))+'</div>';
+  layersDiv.appendChild(el);
+  const cb=el.querySelector('input[type=checkbox]');
+  cb.onchange=()=>{cb.checked?show(cfg.key):map.removeLayer(lyr)};
+  el.querySelector('input[type=range]').oninput=e=>{const o=+e.target.value;map.getPane(pane).style.opacity=o};
+  el.querySelector('.tog').onclick=()=>document.getElementById('l_'+cfg.key).classList.toggle('open');
+  if(cfg.on){cb.checked=true;show(cfg.key)}
+});
+
+function show(key){
+  const s=store[key];
+  if(s.loaded){s.lyr.addTo(map);return}
+  const st=document.getElementById('s_'+key);st.textContent='memuat data...';
+  const sc=document.createElement('script');sc.src='data/'+key+'.js';
+  sc.onload=()=>{
+  const d=window['json_'+key];
+  if(!d){st.textContent='variabel json_'+key+' tidak ditemukan';return}
+  try{
+    s.lyr.addData(d);s.loaded=true;st.textContent='';s.lyr.addTo(map);
+  }catch(e){
+    st.textContent='error: '+e.message;console.error(key,e);
+  }
+};
+  sc.onerror=()=>{st.textContent='file data/'+key+'.js tidak ditemukan';document.getElementById('c_'+key).checked=false};
+  document.head.appendChild(sc);
+}
+
+/* ============ WIDGET ============ */
+document.getElementById('btnPanel').onclick=()=>{document.getElementById('panel').classList.toggle('hide');setTimeout(()=>map.invalidateSize(),300)};
+if(innerWidth<650)document.getElementById('panel').classList.add('hide');
+
+map.on('mousemove',e=>document.getElementById('coord').textContent='Lat: '+e.latlng.lat.toFixed(6)+' | Lng: '+e.latlng.lng.toFixed(6));
+document.getElementById('w-home').onclick=()=>map.fitBounds(BOUNDS);
+document.getElementById('w-print').onclick=()=>print();
+document.getElementById('w-full').onclick=()=>{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()};
+let me;
+document.getElementById('w-loc').onclick=()=>map.locate({setView:true,maxZoom:17});
+map.on('locationfound',e=>{if(me)map.removeLayer(me);me=L.circleMarker(e.latlng,{radius:8,color:'#fff',fillColor:'#1a73e8',fillOpacity:1,weight:3}).addTo(map).bindPopup('Lokasi Anda').openPopup()});
+map.on('locationerror',()=>toast('Lokasi tidak dapat diakses'));
+
+// Pencarian (Nominatim, dibatasi Indonesia)
+const sb=document.getElementById('searchbox'),q=document.getElementById('q'),sres=document.getElementById('sres');
+document.getElementById('w-search').onclick=()=>{sb.style.display=sb.style.display==='block'?'none':'block';q.focus()};
+let sm;
+q.onkeydown=async e=>{
+  if(e.key!=='Enter'||!q.value.trim())return;
+  sres.innerHTML='Mencari...';
+  try{
+    const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=6&countrycodes=id&q='+encodeURIComponent(q.value));
+    const d=await r.json();sres.innerHTML='';
+    if(!d.length)sres.textContent='Tidak ditemukan';
+    d.forEach(x=>{const o=document.createElement('div');o.textContent=x.display_name;o.onclick=()=>{
+      map.setView([x.lat,x.lon],16);if(sm)map.removeLayer(sm);sm=L.marker([x.lat,x.lon]).addTo(map).bindPopup(x.display_name).openPopup();sb.style.display='none'};sres.appendChild(o)});
+  }catch(err){sres.textContent='Gagal mencari'}
+};
+function tick(){
+  const n=new Date(),z='Asia/Jakarta';
+  const t=n.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:z});
+  const j=n.toLocaleTimeString('en-GB',{hour12:false,timeZone:z});
+  document.getElementById('clock').innerHTML=t+'<br><b>'+j+' WIB</b>';
+}
+tick();setInterval(tick,1000);
+// Tabel atribut
+const modal=document.getElementById('modal'),sel=document.getElementById('attrSel'),body=document.getElementById('attrBody');
+LAYERS.forEach(c=>{const o=document.createElement('option');o.value=c.key;o.textContent=c.title;sel.appendChild(o)});
+function renderAttr(){
+  const s=store[sel.value];
+  if(!s.loaded){body.innerHTML='<p style="padding:12px">Aktifkan layer ini terlebih dahulu.</p>';return}
+  const f=s.lyr.toGeoJSON().features.slice(0,500);
+  if(!f.length){body.innerHTML='<p style="padding:12px">Tidak ada data.</p>';return}
+  const cols=Object.keys(f[0].properties);
+  body.innerHTML='<table><tr>'+cols.map(c=>'<th>'+c+'</th>').join('')+'</tr>'+f.map(x=>'<tr>'+cols.map(c=>'<td>'+(x.properties[c]??'')+'</td>').join('')+'</tr>').join('')+'</table>';
+}
+sel.onchange=renderAttr;
+document.getElementById('w-attr').onclick=()=>{modal.style.display='flex';renderAttr()};
+document.getElementById('attrClose').onclick=()=>modal.style.display='none';
+</script>
+</body>
+</html>
